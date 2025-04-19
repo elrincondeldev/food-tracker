@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       .map(
         (i) =>
           `- ${i.igredientName}${
-            i.igredientUnit ? ` (${i.igredientUnit})` : ""
+            i.igredientUnit ? ` (${i.quantity || ''} ${i.igredientUnit})` : ""
           }`
       )
       .join("\n");
@@ -57,7 +57,7 @@ Return a JSON object with *only* this format (and nothing else):
   "ingredients": ${JSON.stringify(recipeIngredients)}
 }
 
-Be as precise as possible in estimating calories, proteins, and fats, considering both the image and the provided ingredients.
+Be as precise as possible in estimating calories, proteins, and fats, considering both the image and the provided ingredients. When quantities are provided, use them to calculate the nutritional values more accurately.
 
 ${moreDetails ? `Additional details: ${moreDetails}` : ""}`,
             },

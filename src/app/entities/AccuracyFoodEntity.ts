@@ -8,10 +8,11 @@ export interface AccuracyFoodGptRequest {
 interface recipeIngredients {
   igredientName: string;
   igredientUnit?: ingredientUnit;
+  quantity?: number;
 }
 
 enum ingredientUnit {
   "ud",
-  "kg",
+  "g",
   "l",
 }
