@@ -38,6 +38,7 @@ export default function ScanPage() {
   const [analysis, setAnalysis] = useState<RecipeAnalysis | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   
   // New state for form fields
   const [recipeName, setRecipeName] = useState('');
@@ -104,6 +105,23 @@ export default function ScanPage() {
     }
   };
 
+  const handleCameraError = (error: string) => {
+    setError(`Camera error: ${error}`);
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = '';
+    }
+  };
+
+  const handleCameraClick = () => {
+    if (cameraInputRef.current) {
+      try {
+        cameraInputRef.current.click();
+      } catch (err) {
+        handleCameraError('Could not access camera');
+      }
+    }
+  };
+
   const handleProcessImage = async () => {
     if (!selectedImage) return;
 
@@ -146,6 +164,9 @@ export default function ScanPage() {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = '';
+    }
   };
 
   const handleAddIngredient = () => {
@@ -164,23 +185,23 @@ export default function ScanPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+        <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center text-gray-800">
           Scan Your Food
         </h1>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg border border-red-100">
+          <div className="mb-4 p-3 sm:p-4 bg-red-50 text-red-700 rounded-lg border border-red-100">
             <p className="font-semibold">Error</p>
-            <p>{error}</p>
+            <p className="text-sm sm:text-base">{error}</p>
           </div>
         )}
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Informative Message */}
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-            <p className="text-blue-800 text-sm">
+          <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-100">
+            <p className="text-blue-800 text-xs sm:text-sm">
               <span className="font-semibold">Tip:</span> While only the photo is required, providing recipe details will help us give you a more accurate nutritional analysis.
             </p>
           </div>
@@ -195,7 +216,7 @@ export default function ScanPage() {
               id="recipeName"
               value={recipeName}
               onChange={(e) => setRecipeName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+              className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
               placeholder="Enter recipe name"
             />
           </div>
@@ -208,7 +229,7 @@ export default function ScanPage() {
             <div className="space-y-2">
               {ingredients.map((ingredient, index) => (
                 <div key={index} className="flex items-center gap-2">
-                  <span className="flex-1 px-3 py-2 bg-gray-50 rounded-md text-gray-900">
+                  <span className="flex-1 px-3 py-2 bg-gray-50 rounded-md text-sm sm:text-base text-gray-900">
                     {ingredient.igredientName}
                     {ingredient.quantity && ` (${ingredient.quantity}`}
                     {ingredient.igredientUnit && ` ${ingredient.igredientUnit}`}
@@ -222,37 +243,39 @@ export default function ScanPage() {
                   </button>
                 </div>
               ))}
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   value={newIngredient.name}
                   onChange={(e) => setNewIngredient({ ...newIngredient, name: e.target.value })}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                  className="w-full sm:flex-1 px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                   placeholder="Ingredient name"
                 />
-                <input
-                  type="number"
-                  value={newIngredient.quantity}
-                  onChange={(e) => setNewIngredient({ ...newIngredient, quantity: e.target.value })}
-                  className="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                  placeholder="Quantity"
-                  min="0"
-                  step="0.1"
-                />
-                <select
-                  value={newIngredient.unit}
-                  onChange={(e) => setNewIngredient({ ...newIngredient, unit: e.target.value })}
-                  className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                >
-                  {MEASUREMENT_UNITS.map((unit) => (
-                    <option key={unit.value} value={unit.value}>
-                      {unit.label}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={newIngredient.quantity}
+                    onChange={(e) => setNewIngredient({ ...newIngredient, quantity: e.target.value })}
+                    className="w-24 px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                    placeholder="Quantity"
+                    min="0"
+                    step="0.1"
+                  />
+                  <select
+                    value={newIngredient.unit}
+                    onChange={(e) => setNewIngredient({ ...newIngredient, unit: e.target.value })}
+                    className="w-32 sm:w-40 px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                  >
+                    {MEASUREMENT_UNITS.map((unit) => (
+                      <option key={unit.value} value={unit.value}>
+                        {unit.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <button
                   onClick={handleAddIngredient}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white text-sm sm:text-base rounded-md hover:bg-blue-700 transition-colors"
                 >
                   Add
                 </button>
@@ -269,7 +292,7 @@ export default function ScanPage() {
               id="moreDetails"
               value={moreDetails}
               onChange={(e) => setMoreDetails(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+              className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
               rows={3}
               placeholder="Enter any additional details about the recipe"
             />
@@ -277,7 +300,7 @@ export default function ScanPage() {
 
           {/* Image Upload and Preview Section */}
           <div className="space-y-4">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-8 text-center">
               <input
                 type="file"
                 accept="image/*"
@@ -285,13 +308,36 @@ export default function ScanPage() {
                 className="hidden"
                 ref={fileInputRef}
               />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
-              >
-                Take or Upload Photo
-              </button>
-              <p className="mt-2 text-sm text-gray-700">
+              <input
+                type="file"
+                accept="image/*"
+                capture="user"
+                onChange={handleImageUpload}
+                onError={() => handleCameraError('Camera access denied')}
+                className="hidden"
+                ref={cameraInputRef}
+              />
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  onClick={handleCameraClick}
+                  className="w-full sm:w-auto py-2 sm:py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                  </svg>
+                  Take Photo
+                </button>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full sm:w-auto py-2 sm:py-3 px-4 bg-gray-600 hover:bg-gray-700 text-white text-sm sm:text-base font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/20000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                  </svg>
+                  Upload Image
+                </button>
+              </div>
+              <p className="mt-2 text-xs sm:text-sm text-gray-700">
                 Supported formats: JPG, PNG
               </p>
             </div>
@@ -306,17 +352,17 @@ export default function ScanPage() {
                     className="object-cover"
                   />
                 </div>
-                <div className="flex justify-center space-x-4">
+                <div className="flex flex-col sm:flex-row justify-center gap-2 sm:space-x-4">
                   <button
                     onClick={handleRetake}
-                    className="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition-colors duration-200"
+                    className="w-full sm:w-auto py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm sm:text-base font-medium rounded-lg transition-colors duration-200"
                   >
                     Retake Photo
                   </button>
                   {!analysis && (
                     <button
                       onClick={handleProcessImage}
-                      className="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
+                      className="w-full sm:w-auto py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base font-medium rounded-lg transition-colors duration-200"
                     >
                       Process Image
                     </button>
@@ -328,9 +374,9 @@ export default function ScanPage() {
 
           {/* Loading State */}
           {isLoading && (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-              <p className="mt-4 text-gray-600 font-medium">
+            <div className="text-center py-6 sm:py-8">
+              <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+              <p className="mt-4 text-sm sm:text-base text-gray-600 font-medium">
                 Analyzing your food...
               </p>
             </div>
@@ -338,49 +384,49 @@ export default function ScanPage() {
 
           {/* Analysis Results */}
           {analysis && (
-            <div className="space-y-6">
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-xl border border-blue-100">
-                <h2 className="text-xl font-semibold mb-2 text-blue-800">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 sm:p-5 rounded-xl border border-blue-100">
+                <h2 className="text-lg sm:text-xl font-semibold mb-2 text-blue-800">
                   Analysis Results
                 </h2>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <p className="text-sm text-gray-600">Food Name</p>
-                    <p className="text-lg font-semibold text-gray-800">
+                    <p className="text-xs sm:text-sm text-gray-600">Food Name</p>
+                    <p className="text-base sm:text-lg font-semibold text-gray-800">
                       {analysis.foodName}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Calories</p>
-                    <p className="text-lg font-semibold text-gray-800">
+                    <p className="text-xs sm:text-sm text-gray-600">Calories</p>
+                    <p className="text-base sm:text-lg font-semibold text-gray-800">
                       {analysis.calories} kcal
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Proteins</p>
-                    <p className="text-lg font-semibold text-gray-800">
+                    <p className="text-xs sm:text-sm text-gray-600">Proteins</p>
+                    <p className="text-base sm:text-lg font-semibold text-gray-800">
                       {analysis.proteins}g
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Fats</p>
-                    <p className="text-lg font-semibold text-gray-800">
+                    <p className="text-xs sm:text-sm text-gray-600">Fats</p>
+                    <p className="text-base sm:text-lg font-semibold text-gray-800">
                       {analysis.fats}g
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-center space-x-4">
+              <div className="flex flex-col sm:flex-row justify-center gap-2 sm:space-x-4">
                 <button
                   onClick={handleRetake}
-                  className="py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition-colors duration-200"
+                  className="w-full sm:w-auto py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm sm:text-base font-medium rounded-lg transition-colors duration-200"
                 >
                   Scan Another
                 </button>
                 <button
                   onClick={() => router.push('/dashboard')}
-                  className="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
+                  className="w-full sm:w-auto py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base font-medium rounded-lg transition-colors duration-200"
                 >
                   View Dashboard
                 </button>
