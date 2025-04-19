@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface RecipeAnalysis {
   foodName: string;
@@ -24,10 +24,10 @@ interface Ingredient {
 }
 
 const MEASUREMENT_UNITS = [
-  { value: '', label: 'No unit' },
-  { value: 'ud', label: 'Unidad (ud)' },
-  { value: 'g', label: 'Gramos (g)' },
-  { value: 'l', label: 'Litros (l)' },
+  { value: "", label: "No unit" },
+  { value: "ud", label: "Unidad (ud)" },
+  { value: "g", label: "Gramos (g)" },
+  { value: "l", label: "Litros (l)" },
 ];
 
 export default function ScanPage() {
@@ -39,29 +39,33 @@ export default function ScanPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
-  
+
   // New state for form fields
-  const [recipeName, setRecipeName] = useState('');
+  const [recipeName, setRecipeName] = useState("");
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
-  const [moreDetails, setMoreDetails] = useState('');
-  const [newIngredient, setNewIngredient] = useState({ name: '', unit: '', quantity: '' });
+  const [moreDetails, setMoreDetails] = useState("");
+  const [newIngredient, setNewIngredient] = useState({
+    name: "",
+    unit: "",
+    quantity: "",
+  });
 
   const compressImage = async (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = (event) => {
-        const img = document.createElement('img');
+        const img = document.createElement("img");
         img.src = event.target?.result as string;
         img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
           // Calculate new dimensions while maintaining aspect ratio
           let width = img.width;
           let height = img.height;
           const maxDimension = 800;
-          
+
           if (width > height && width > maxDimension) {
             height = (height * maxDimension) / width;
             width = maxDimension;
@@ -69,15 +73,15 @@ export default function ScanPage() {
             width = (width * maxDimension) / height;
             height = maxDimension;
           }
-          
+
           canvas.width = width;
           canvas.height = height;
-          
+
           ctx?.drawImage(img, 0, 0, width, height);
-          
+
           // Compress the image
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-          resolve(compressedDataUrl.split(',')[1]); // Remove the data URL prefix
+          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.7);
+          resolve(compressedDataUrl.split(",")[1]); // Remove the data URL prefix
         };
         img.onerror = reject;
       };
@@ -85,14 +89,16 @@ export default function ScanPage() {
     });
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     try {
       setError(null);
       setAnalysis(null);
-      
+
       // Create preview URL
       const previewUrl = URL.createObjectURL(file);
       setPreviewUrl(previewUrl);
@@ -101,14 +107,14 @@ export default function ScanPage() {
       const compressedBase64 = await compressImage(file);
       setSelectedImage(compressedBase64);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
     }
   };
 
   const handleCameraError = (error: string) => {
     setError(`Camera error: ${error}`);
     if (cameraInputRef.current) {
-      cameraInputRef.current.value = '';
+      cameraInputRef.current.value = "";
     }
   };
 
@@ -116,8 +122,9 @@ export default function ScanPage() {
     if (cameraInputRef.current) {
       try {
         cameraInputRef.current.click();
-      } catch (err) {
-        handleCameraError('Could not access camera');
+      } catch (error) {
+        console.error("Camera error:", error);
+        handleCameraError("Could not access camera");
       }
     }
   };
@@ -128,13 +135,13 @@ export default function ScanPage() {
     try {
       setError(null);
       setAnalysis(null);
-      
+
       // Send to API
       setIsLoading(true);
-      const response = await fetch('/api/recipe', {
-        method: 'POST',
+      const response = await fetch("/api/recipe", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           imageBase64: selectedImage,
@@ -145,13 +152,13 @@ export default function ScanPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to analyze image');
+        throw new Error("Failed to analyze image");
       }
 
       const data = await response.json();
       setAnalysis(data.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -162,21 +169,26 @@ export default function ScanPage() {
     setSelectedImage(null);
     setAnalysis(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
     if (cameraInputRef.current) {
-      cameraInputRef.current.value = '';
+      cameraInputRef.current.value = "";
     }
   };
 
   const handleAddIngredient = () => {
     if (newIngredient.name.trim()) {
-      setIngredients([...ingredients, {
-        igredientName: newIngredient.name.trim(),
-        igredientUnit: newIngredient.unit || undefined,
-        quantity: newIngredient.quantity ? parseFloat(newIngredient.quantity) : undefined
-      }]);
-      setNewIngredient({ name: '', unit: '', quantity: '' });
+      setIngredients([
+        ...ingredients,
+        {
+          igredientName: newIngredient.name.trim(),
+          igredientUnit: newIngredient.unit || undefined,
+          quantity: newIngredient.quantity
+            ? parseFloat(newIngredient.quantity)
+            : undefined,
+        },
+      ]);
+      setNewIngredient({ name: "", unit: "", quantity: "" });
     }
   };
 
@@ -202,14 +214,20 @@ export default function ScanPage() {
           {/* Informative Message */}
           <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-100">
             <p className="text-blue-800 text-xs sm:text-sm">
-              <span className="font-semibold">Tip:</span> While only the photo is required, providing recipe details will help us give you a more accurate nutritional analysis.
+              <span className="font-semibold">Tip:</span> While only the photo
+              is required, providing recipe details will help us give you a more
+              accurate nutritional analysis.
             </p>
           </div>
 
           {/* Recipe Name Input */}
           <div>
-            <label htmlFor="recipeName" className="block text-sm font-medium text-gray-800 mb-1">
-              Recipe Name <span className="text-gray-500 text-xs">(optional)</span>
+            <label
+              htmlFor="recipeName"
+              className="block text-sm font-medium text-gray-800 mb-1"
+            >
+              Recipe Name{" "}
+              <span className="text-gray-500 text-xs">(optional)</span>
             </label>
             <input
               type="text"
@@ -224,7 +242,8 @@ export default function ScanPage() {
           {/* Ingredients Input */}
           <div>
             <label className="block text-sm font-medium text-gray-800 mb-1">
-              Ingredients <span className="text-gray-500 text-xs">(optional)</span>
+              Ingredients{" "}
+              <span className="text-gray-500 text-xs">(optional)</span>
             </label>
             <div className="space-y-2">
               {ingredients.map((ingredient, index) => (
@@ -233,7 +252,7 @@ export default function ScanPage() {
                     {ingredient.igredientName}
                     {ingredient.quantity && ` (${ingredient.quantity}`}
                     {ingredient.igredientUnit && ` ${ingredient.igredientUnit}`}
-                    {ingredient.quantity && ')'}
+                    {ingredient.quantity && ")"}
                   </span>
                   <button
                     onClick={() => handleRemoveIngredient(index)}
@@ -247,7 +266,9 @@ export default function ScanPage() {
                 <input
                   type="text"
                   value={newIngredient.name}
-                  onChange={(e) => setNewIngredient({ ...newIngredient, name: e.target.value })}
+                  onChange={(e) =>
+                    setNewIngredient({ ...newIngredient, name: e.target.value })
+                  }
                   className="w-full sm:flex-1 px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                   placeholder="Ingredient name"
                 />
@@ -255,7 +276,12 @@ export default function ScanPage() {
                   <input
                     type="number"
                     value={newIngredient.quantity}
-                    onChange={(e) => setNewIngredient({ ...newIngredient, quantity: e.target.value })}
+                    onChange={(e) =>
+                      setNewIngredient({
+                        ...newIngredient,
+                        quantity: e.target.value,
+                      })
+                    }
                     className="w-24 px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     placeholder="Quantity"
                     min="0"
@@ -263,7 +289,12 @@ export default function ScanPage() {
                   />
                   <select
                     value={newIngredient.unit}
-                    onChange={(e) => setNewIngredient({ ...newIngredient, unit: e.target.value })}
+                    onChange={(e) =>
+                      setNewIngredient({
+                        ...newIngredient,
+                        unit: e.target.value,
+                      })
+                    }
                     className="w-32 sm:w-40 px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                   >
                     {MEASUREMENT_UNITS.map((unit) => (
@@ -285,8 +316,12 @@ export default function ScanPage() {
 
           {/* Additional Details Input */}
           <div>
-            <label htmlFor="moreDetails" className="block text-sm font-medium text-gray-800 mb-1">
-              Additional Details <span className="text-gray-500 text-xs">(optional)</span>
+            <label
+              htmlFor="moreDetails"
+              className="block text-sm font-medium text-gray-800 mb-1"
+            >
+              Additional Details{" "}
+              <span className="text-gray-500 text-xs">(optional)</span>
             </label>
             <textarea
               id="moreDetails"
@@ -313,7 +348,7 @@ export default function ScanPage() {
                 accept="image/*"
                 capture="user"
                 onChange={handleImageUpload}
-                onError={() => handleCameraError('Camera access denied')}
+                onError={() => handleCameraError("Camera access denied")}
                 className="hidden"
                 ref={cameraInputRef}
               />
@@ -322,8 +357,17 @@ export default function ScanPage() {
                   onClick={handleCameraClick}
                   className="w-full sm:w-auto py-2 sm:py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   Take Photo
                 </button>
@@ -331,8 +375,17 @@ export default function ScanPage() {
                   onClick={() => fileInputRef.current?.click()}
                   className="w-full sm:w-auto py-2 sm:py-3 px-4 bg-gray-600 hover:bg-gray-700 text-white text-sm sm:text-base font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
                 >
-                  <svg xmlns="http://www.w3.org/20000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                  <svg
+                    xmlns="http://www.w3.org/20000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   Upload Image
                 </button>
@@ -391,7 +444,9 @@ export default function ScanPage() {
                 </h2>
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <p className="text-xs sm:text-sm text-gray-600">Food Name</p>
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      Food Name
+                    </p>
                     <p className="text-base sm:text-lg font-semibold text-gray-800">
                       {analysis.foodName}
                     </p>
@@ -425,7 +480,7 @@ export default function ScanPage() {
                   Scan Another
                 </button>
                 <button
-                  onClick={() => router.push('/dashboard')}
+                  onClick={() => router.push("/dashboard")}
                   className="w-full sm:w-auto py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base font-medium rounded-lg transition-colors duration-200"
                 >
                   View Dashboard
